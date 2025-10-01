@@ -1,70 +1,88 @@
 package org.dev;
+
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Scanner;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class Main {
+
+    private static final Logger logger = LoggerFactory.getLogger(Main.class);
+
     public static void main(String[] args) throws SQLException {
         Scanner sc = new Scanner(System.in);
 
-        System.out.println("Select Database (mysql/postgresql): ");
+        logger.info("Select Database (mysql/postgresql): ");
         String dbType = sc.nextLine();
 
         TodoStorage storage = StorageFactory.getStorage(dbType);
         TodoService service = new TodoService(storage);
-
-        while (true) {
-            System.out.println("\n1. Create TODO\n2. Retrieve TODO By ID\n3. Update TODO\n4. Delete TODO\n5. Retrieve All TODOS\n6. Exit");
+        boolean running = true;
+        while (running) {
+            logger.info("\n1. Create TODO\n2. Retrieve TODO By ID\n3. Update TODO\n4. Delete TODO\n5. Retrieve All TODOS\n6. Exit");
             int choice = Integer.parseInt(sc.nextLine());
 
             switch (choice) {
-                case 1:
-                    System.out.print("ID:");
-                    String id=sc.nextLine();
-                    System.out.print("Title: ");
+                case 1 -> {
+                    logger.info("ID: ");
+                    String id = sc.nextLine();
+                    logger.info("Title: ");
                     String title = sc.nextLine();
-                    System.out.print("Description: ");
+                    logger.info("Description: ");
                     String desc = sc.nextLine();
                     service.createTodo(new Todo(id, title, desc, false));
-                    System.out.println("TODO Created!");
-                    break;
-                case 2:
-                    System.out.print("ID: ");
+                    logger.info("TODO Created!");
+                }
+                case 2 -> {
+                    logger.info("ID: ");
                     String rid = sc.nextLine();
                     Todo t = service.getTodoById(rid);
-                    System.out.println(t != null ? t : "TODO not found");
-                    break;
-                case 3:
-                    System.out.print("ID to Update: ");
+                    if (t != null) {
+                        logger.info("{}", t);
+                    } else {
+                        logger.info("Todo not found");
+                    }
+
+                }
+                case 3 -> {
+                    logger.info("ID to Update: ");
                     String uid = sc.nextLine();
                     Todo ut = service.getTodoById(uid);
                     if (ut != null) {
-                        System.out.print("New Title: ");
+                        logger.info("New Title: ");
                         ut.setTitle(sc.nextLine());
-                        System.out.print("New Description: ");
+                        logger.info("New Description: ");
                         ut.setDescription(sc.nextLine());
-                        System.out.print("Completed (true/false): ");
+                        logger.info("Completed (true/false): ");
                         ut.setCompleted(Boolean.parseBoolean(sc.nextLine()));
                         service.updateTodo(ut);
-                        System.out.println("TODO Updated!");
-                    } else System.out.println("TODO not found");
-                    break;
-                case 4:
-                    System.out.print("ID to Delete: ");
+                        logger.info("TODO Updated!");
+                    } else {
+                        logger.info("TODO not found");
+                    }
+                }
+                case 4 -> {
+                    logger.info("ID to Delete: ");
                     String did = sc.nextLine();
                     service.deleteTodo(did);
-                    System.out.println("TODO Deleted!");
-                    break;
-                case 5:
+                    logger.info("TODO Deleted!");
+                }
+                case 5 -> {
                     List<Todo> todos = service.getAllTodos();
-                    for (Todo todo : todos) {
-                        System.out.println(todo);
+                    if (todos.isEmpty()) {
+                        logger.info("No TODOs found");
+                    } else {
+                        todos.forEach(todo -> logger.info(todo.toString()));
                     }
-                    break;
-                case 6:
-                    System.exit(0);
-                    break;
-                default:
-                    System.out.println("Invalid Operation");
+                }
+                case 6 -> {
+
+                    running=false;
+                    logger.info("Exiting...");
+
+                }
+                default -> logger.warn("Invalid Operation");
             }
         }
     }
